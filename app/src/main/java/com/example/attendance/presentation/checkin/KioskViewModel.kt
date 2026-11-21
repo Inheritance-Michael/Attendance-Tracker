@@ -28,7 +28,6 @@ import java.time.Clock
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.time.temporal.TemporalQueries.zone
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.microseconds
 
@@ -78,7 +77,7 @@ class KioskViewModel @Inject constructor(
                     _state.update {
                         it.copy(
                             timeText = now.format(TIME),
-                            dataText = now.format(DATE)
+                            dateText = now.format(DATE)
                         )
                     }
                     delay(1_000.microseconds)
@@ -122,29 +121,35 @@ class KioskViewModel @Inject constructor(
                 }
                 delay(KioskTiming.RESULT_DISPLAY_MS.microseconds)
             } finally {
-
+                _state.update {
+                    it.copy(
+                        phase = KioskPhase.Scanning
+                    )
+                }
+                lastHandledAt = clock.millis()
+                busy = false
             }
         }
     }
 
     private suspend fun buildPhase(
         result: CheckInResult,
-        zoneId: ZoneId
+        zone: ZoneId
     ): KioskPhase.Result {
         return when (result) {
-            is CheckInResult.AlreadyIn -> alreadyIn(result.person, result.at)
-            is CheckInResult.Success -> success(result.person, result.at, result.status)
+            is CheckInResult.AlreadyIn -> alreadyIn(result.person, result.at, zone)
+            is CheckInResult.Success -> success(result.person, result.at, result.status, zone)
             CheckInResult.Unknown -> unknown()
         }
     }
 
-    private suspend fun success(person: Person, at: Instant, status: AttendanceStatus): KioskPhase.Result {
+    private suspend fun success(person: Person, at: Instant, status: AttendanceStatus, zone: ZoneId): KioskPhase.Result {
         val late = status == AttendanceStatus.LATE
         return KioskPhase.Result(
             outcome = if (late) Outcome.LATE else Outcome.ON_TIME,
             headline = "welcome, ${person.fullName.firstName()}" + if (late) "" else "!",
             name = person.fullName,
-            classLine = classOf(person),
+            classLine = classOf(person).toString(),
             initials = person.fullName.initials(),
             pill = "First sign-in today at ${at.atZone(zone).format(TIME)} . ${if(late) "Late" else "on time"}"
         )
@@ -161,14 +166,14 @@ class KioskViewModel @Inject constructor(
         )
     }
 
-    private suspend fun alreadyIn(person: Person, at: Instant): KioskPhase.Result {
+    private suspend fun alreadyIn(person: Person, at: Instant, zone: ZoneId): KioskPhase.Result {
        return KioskPhase.Result(
            outcome = Outcome.ALREADY_IN,
            headline = "Already signed in",
            name = person.fullName,
-           classLine = classOf(person),
+           classLine = classOf(person).toString(),
            initials = person.fullName.initials(),
-           pill = "First sign-in today at ${at.atZone(zone()).format(TIME)}"
+           pill = "First sign-in today at ${at.atZone(zone).format(TIME)}"
        )
     }
     private suspend fun classOf(person: Person): String?{

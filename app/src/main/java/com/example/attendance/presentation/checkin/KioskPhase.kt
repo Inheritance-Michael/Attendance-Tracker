@@ -8,7 +8,7 @@ sealed interface KioskPhase{
         val outcome: Outcome,
         val headline: String,
         val name: String,
-        val classLine: String?,
+        val classLine: String,
         val initials: String,
         val pill: String
     ): KioskPhase

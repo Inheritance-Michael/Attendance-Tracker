@@ -15,7 +15,10 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -29,45 +32,29 @@ import androidx.core.content.ContextCompat
 
 @SuppressLint("RememberReturnType")
 @Composable
-fun CameraPermissionGate(
-    content: @Composable () -> Unit
-) {
+fun CameraPermissionGate(content: @Composable () -> Unit) {
     val context = LocalContext.current
-
     var granted by remember {
-        ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) ==
-                PackageManager.PERMISSION_GRANTED
+        mutableStateOf(
+            ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) ==
+                    PackageManager.PERMISSION_GRANTED
+        )
     }
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted = it }
 
-    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted = it}
+    LaunchedEffect(Unit) { if (!granted) launcher.launch(Manifest.permission.CAMERA) }
 
-    LaunchedEffect(Unit) {
-        if (!granted) launcher.launch(Manifest.permission.CAMERA)
-    }
-
-    if(granted){
+    if (granted) {
         content()
-    }else(
-            Column(
-                Modifier
-                    .fillMaxSize()
-                    .padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ){
-                Text(
-                    text = "Camera access is needed to scan ID cards",
-                    color = Color.White,
-                    textAlign = TextAlign.Center,
-                )
-                Spacer(Modifier.height(16.dp))
-                Button(
-                    onClick = {launcher.launch(Manifest.permission.CAMERA)}
-                ) {
-                    Text(
-                        text = "Allow Camera"
-                    )
-                }
-            }
-    )
+    } else {
+        Column(
+            Modifier.fillMaxSize().padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text("Camera access is needed to scan ID cards", color = Color.White, textAlign = TextAlign.Center)
+            Spacer(Modifier.height(16.dp))
+            Button(onClick = { launcher.launch(Manifest.permission.CAMERA) }) { Text("Allow camera") }
+        }
+    }
 }
