@@ -1,11 +1,13 @@
 package com.example.attendance.di
 
 import com.example.attendance.data.repository.AttendanceRepositoryImpi
+import com.example.attendance.data.repository.GroupRepositoryImpl
 import com.example.attendance.data.repository.OrganizationRepositoryImpl
 import com.example.attendance.data.repository.PersonRepositoryImpl
 import com.example.attendance.data.repository.RoomTransactionRunner
 import com.example.attendance.data.repository.ScheduleRepositoryImpl
 import com.example.attendance.domain.repository.AttendanceRepository
+import com.example.attendance.domain.repository.GroupRepository
 import com.example.attendance.domain.repository.OrganizationRepository
 import com.example.attendance.domain.repository.PersonRepository
 import com.example.attendance.domain.repository.ScheduleRepository
@@ -34,6 +36,10 @@ abstract class  RepositoryModule{
     @Binds
     @Singleton
     abstract fun bindAttendanceRepository(impl: AttendanceRepositoryImpi): AttendanceRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindGroupRepository(impl: GroupRepositoryImpl): GroupRepository
 
     @Binds
     @Singleton
