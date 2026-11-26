@@ -5,5 +5,6 @@ import com.example.attendance.domain.model.Organization
 
 interface OrganizationRepository {
 
-    suspend fun getOrCreateDefault(): Organization
+    suspend fun getCurrent(): Organization?
+    suspend fun create(org: Organization)
 }

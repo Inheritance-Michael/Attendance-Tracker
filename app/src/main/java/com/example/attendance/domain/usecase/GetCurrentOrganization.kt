@@ -7,7 +7,7 @@ import javax.inject.Inject
 class GetCurrentOrganization @Inject constructor(
     private val organization: OrganizationRepository
 ) {
-    suspend operator fun invoke(): Organization{
-        return organization.getOrCreateDefault()
+    suspend operator fun invoke(): Organization  {
+        return checkNotNull(organization.getCurrent()) {"No Organization has been Set ip yet"}
     }
 }

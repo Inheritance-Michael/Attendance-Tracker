@@ -13,6 +13,8 @@ data class OrganizationEntity(
     val adminPinHash: String = "",
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis(),
+    val failedPinAttempts: Int = 0,
+    val pinLockUntil: Long = 0,
     @PrimaryKey
     val id: String = UUID.randomUUID().toString()
 )
