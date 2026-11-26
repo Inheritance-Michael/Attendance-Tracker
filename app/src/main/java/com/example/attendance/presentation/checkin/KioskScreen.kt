@@ -255,7 +255,7 @@ private fun CameraPanel(x0: (String) -> Unit, x1: Modifier) {
    ){
        CameraPermissionGate {
            QrScannerView(
-               onQrScanner = x0,
+               onQrScanned = x0,
                modifier = Modifier.fillMaxSize()
            )
            Box(
@@ -274,7 +274,7 @@ private fun Header(x0: (KioskUiEvent) -> Unit) {
         text = "CheckIn",
         fontSize = 24.sp,
         fontWeight = FontWeight.Bold,
-        color = AppColors.Primary,
+        color = AppColors.Surface,
         modifier = Modifier.combinedClickable(
             onClick = {
                 TODO()
