@@ -1,12 +1,16 @@
 package com.example.attendance.di
 
+import com.example.attendance.data.repository.AdminSecurityRepositoryImpl
 import com.example.attendance.data.repository.AttendanceRepositoryImpi
+import com.example.attendance.data.repository.DemoDataSeeder
 import com.example.attendance.data.repository.GroupRepositoryImpl
 import com.example.attendance.data.repository.OrganizationRepositoryImpl
 import com.example.attendance.data.repository.PersonRepositoryImpl
 import com.example.attendance.data.repository.RoomTransactionRunner
 import com.example.attendance.data.repository.ScheduleRepositoryImpl
+import com.example.attendance.domain.repository.AdminSecurityRepository
 import com.example.attendance.domain.repository.AttendanceRepository
+import com.example.attendance.domain.repository.DemoDataSource
 import com.example.attendance.domain.repository.GroupRepository
 import com.example.attendance.domain.repository.OrganizationRepository
 import com.example.attendance.domain.repository.PersonRepository
@@ -45,4 +49,11 @@ abstract class  RepositoryModule{
     @Singleton
     abstract fun bindTransitionRunner(impl: RoomTransactionRunner): TransactionRunner
 
+    @Binds
+    @Singleton
+    abstract fun bindAdminSecurityRepository(impl: AdminSecurityRepositoryImpl): AdminSecurityRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindDemoDataSource(impl: DemoDataSeeder): DemoDataSource
 }

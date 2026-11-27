@@ -13,6 +13,7 @@ import com.example.attendance.domain.model.AttendanceRecord
 import com.example.attendance.domain.model.Organization
 import com.example.attendance.domain.model.Person
 import com.example.attendance.domain.model.Schedule
+import java.time.DayOfWeek
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
@@ -43,7 +44,26 @@ fun SchedulesEntity.toDomain() = Schedule(
     id = id,
     startTime = LocalTime.parse(startTime),
     endTime = LocalTime.parse(endTime),
-    graceMinutes = graceMinutes
+    graceMinutes = graceMinutes,
+    name = name,
+    days = daysOfWeek
+        .split(",")
+        .mapNotNull { it.trim().toIntOrNull() }
+        .map { DayOfWeek.of(it) }
+        .toSet()
+)
+
+fun Schedule.toEntity(orgId: String) = SchedulesEntity(
+    orgId = orgId,
+    name = name,
+    startTime = startTime.toString(),
+    endTime = endTime.toString(),
+    graceMinutes = graceMinutes,
+    daysOfWeek = days
+        .map { it.value }
+        .sorted()
+        .joinToString(","),
+    id = id
 )
 
 fun Person.toEntity() = PersonEntity(
@@ -82,4 +102,11 @@ fun TodayRow.toDomain() = AttendanceEntry(
     personName = fullName,
     timestamp = Instant.ofEpochMilli(timestamp),
     status = AttendanceStatus.valueOf(status.uppercase())
+)
+
+fun Organization.toEntity() = OrganizationEntity(
+    name = name,
+    personLabel = personLabel,
+    groupLabel = groupLabel,
+    timezone = zoneId.id,
 )

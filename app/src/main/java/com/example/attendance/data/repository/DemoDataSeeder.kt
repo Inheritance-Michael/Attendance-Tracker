@@ -10,6 +10,8 @@ import com.example.attendance.data.local.entities.GroupEntity
 import com.example.attendance.data.local.entities.OrganizationEntity
 import com.example.attendance.data.local.entities.PersonEntity
 import com.example.attendance.data.local.entities.SchedulesEntity
+import com.example.attendance.domain.repository.DemoDataSource
+import com.example.attendance.domain.service.PinHasher
 import com.example.attendance.domain.util.QrTokenGenerator
 import javax.inject.Inject
 
@@ -18,68 +20,74 @@ class DemoDataSeeder @Inject constructor(
     private val scheduleDao: ScheduleDao,
     private val groupDao: GroupDao,
     private val personDao: PersonDao,
-    private val credentialDao: CredentialDao
-) {
-    suspend fun seedIfEmpty(): String {
-        orgDao.getFirst()?.let { return it.id }
+    private val credentialDao: CredentialDao,
+    private val pinHasher: PinHasher
+): DemoDataSource{
+    override suspend fun seed() {
+        if (orgDao.getFirst() != null) return
+        suspend fun seedIfEmpty(): String {
+            orgDao.getFirst()?.let { return it.id }
 
-        val org = OrganizationEntity(name = "Demo School")
-        orgDao.upsert(org)
+            val org = OrganizationEntity(name = "Demo School")
+            orgDao.upsert(org)
 
-        val alwaysLate = SchedulesEntity(
-            orgId = org.id,
-            name = "Test: always late",
-            startTime = "00:00",
-            endTime = "23:59",
-            graceMinutes = 0,
-        )
-
-        val alwaysOnTime = SchedulesEntity(
-            orgId = org.id,
-            name = "Test: always late",
-            startTime = "00:00",
-            endTime = "23:59",
-            graceMinutes = 0,
-        )
-
-        scheduleDao.upsert(alwaysOnTime)
-        scheduleDao.upsert(alwaysLate)
-
-        val lateGroup = GroupEntity(
-            orgId = org.id,
-            name = "late Test Class",
-            scheduleId = alwaysLate.id,
-        )
-
-        val onTimeGroup = GroupEntity(
-            orgId = org.id,
-            name = "On-time Test",
-            scheduleId = alwaysOnTime.id,
-        )
-        groupDao.upsert(lateGroup)
-        groupDao.upsert(onTimeGroup)
-
-        val people = listOf<Pair<String, String?>>(
-            "Ada Obi" to lateGroup.id,
-            "Tunde Bello" to lateGroup.id,
-            "Chidi Eze" to onTimeGroup.id,
-            "Ngozi Okafor" to onTimeGroup.id,
-            "Ibrahim Musa" to null
-        )
-
-        people.forEach { (name, groupId) ->
-            val person = PersonEntity(orgId = org.id, groupId = groupId, fullName = name)
-            personDao.upsert(person)
-            credentialDao.upsert(
-                CredentialEntity(
-                    orgId = org.id,
-                    personId = person.id,
-                    type = "qr",
-                    value = QrTokenGenerator.generate()
-                )
+            val alwaysLate = SchedulesEntity(
+                orgId = org.id,
+                name = "Test: always late",
+                startTime = "00:00",
+                endTime = "23:59",
+                graceMinutes = 0,
             )
-        }
 
-        return org.id
+            val alwaysOnTime = SchedulesEntity(
+                orgId = org.id,
+                name = "Test: always late",
+                startTime = "00:00",
+                endTime = "23:59",
+                graceMinutes = 0,
+            )
+
+            scheduleDao.upsert(alwaysOnTime)
+            scheduleDao.upsert(alwaysLate)
+
+            val lateGroup = GroupEntity(
+                orgId = org.id,
+                name = "late Test Class",
+                scheduleId = alwaysLate.id,
+            )
+
+            val onTimeGroup = GroupEntity(
+                orgId = org.id,
+                name = "On-time Test",
+                scheduleId = alwaysOnTime.id,
+            )
+            groupDao.upsert(lateGroup)
+            groupDao.upsert(onTimeGroup)
+
+            val people = listOf<Pair<String, String?>>(
+                "Ada Obi" to lateGroup.id,
+                "Tunde Bello" to lateGroup.id,
+                "Chidi Eze" to onTimeGroup.id,
+                "Ngozi Okafor" to onTimeGroup.id,
+                "Ibrahim Musa" to null
+            )
+
+            people.forEach { (name, groupId) ->
+                val person = PersonEntity(orgId = org.id, groupId = groupId, fullName = name)
+                personDao.upsert(person)
+                credentialDao.upsert(
+                    CredentialEntity(
+                        orgId = org.id,
+                        personId = person.id,
+                        type = "qr",
+                        value = QrTokenGenerator.generate()
+                    )
+                )
+            }
+
+            orgDao.setPin(org.id, pinHasher.hash("123456"), System.currentTimeMillis())
+            return org.id
+        }
     }
+
 }
